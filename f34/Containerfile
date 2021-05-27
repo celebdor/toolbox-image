@@ -1,0 +1,26 @@
+FROM registry.fedoraproject.org/fedora-toolbox:34
+
+ENV NAME=fedora-toolbox VERSION=34
+LABEL com.github.containers.toolbox="true" \
+      com.github.debarshiray.toolbox="true" \
+      com.redhat.component="$NAME" \
+      name="$NAME" \
+      version="$VERSION" \
+      usage="This image is meant to be used with the toolbox command" \
+      summary="Base image for creating Fedora toolbox containers" \
+      maintainer="Debarshi Ray <rishi@fedoraproject.org>"
+
+COPY my-packages /
+COPY my-pip-packages /
+RUN dnf install -y \
+	https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm \
+	https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm \
+	&& dnf copr enable -y agriffis/neovim-nightly \
+	&& dnf install -y $(<my-packages) \
+	&& pip install -r $(<my-pip-packages) \
+	&& rm /my-packages /my-pip-packages \
+	&& dnf clean all
+
+COPY podman /usr/local/bin/podman
+
+CMD /bin/sh
